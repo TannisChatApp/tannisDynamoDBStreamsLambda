@@ -1,0 +1,36 @@
+{
+  "name": "tannisdynamodbstreamslambda",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tannis app database stream processing node lambda module",
+  "keywords": [
+    "node",
+    "typescript",
+    "aws",
+    "lambda"
+  ],
+  "main": "streamProcessor.js",
+  "author": {
+    "name": "Palash Sarkar",
+    "email": "palashsarkar0007@gmail.com",
+    "url": "https://github.com/Tejas07PSK"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TannisChatApp/tannisUserServicesLambda.git"
+  },
+  "dependencies": {
+    "aws-sdk": "~2.937.0",
+    "redis": "~3.1.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.83",
+    "@types/node": "^15.12.5",
+    "@types/redis": "^2.8.31"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.11.1"
+  }
+}
