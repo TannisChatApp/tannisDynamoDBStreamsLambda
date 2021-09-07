@@ -7,8 +7,10 @@ provider:
   runtime: nodejs14.x
   lambdaHashingVersion: '20201221'
   region: ap-south-1
-  timeout: 10
+  timeout: 30
   logRetentionInDays: 1
+  deploymentBucket:
+    maxPreviousDeploymentArtifacts: 1
   iam:
     role: arn:aws:iam::502860870433:role/service-role/test-role-elybze7y
   vpc:
@@ -17,20 +19,9 @@ provider:
     subnetIds:
       - subnet-0e14a634124b0f965
       - subnet-08b504261a6d7b39b
-
-functions:
-  compute:
-    handler: streamProcessor.handler
-    events:
-      - stream:
-          type: dynamodb
-          arn: arn:aws:dynamodb:ap-south-1:502860870433:table/tannisUsers/stream/2021-09-02T05:25:32.757
-
-plugins:
-  - serverless-plugin-typescript
-
 package:
   patterns:
+    - 'cacheUpdate.lua'
     - '!.git/**'
     - '!.serverless/**'
     - '!.gitignore'
@@ -38,3 +29,18 @@ package:
     - '!README.md'
     - '!serverless.yml'
     - '!package-lock.json'
+    - '!tsconfig.json'
+
+functions:
+  compute:
+    handler: streamProcessor.handler
+    description: Processes streamed events from tannis DynamDB.
+    events:
+      - stream:
+          type: dynamodb
+          arn: arn:aws:dynamodb:ap-south-1:502860870433:table/tannisUsers/stream/2021-09-04T22:01:29.296
+          batchSize: 1
+          startingPosition: LATEST
+
+plugins:
+  - serverless-plugin-typescript
