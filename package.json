@@ -18,7 +18,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TannisChatApp/tannisUserServicesLambda.git"
+    "url": "https://github.com/TannisChatApp/tannisDynamoDBStreamsLambda.git"
   },
   "dependencies": {
     "aws-sdk": "~2.937.0",
