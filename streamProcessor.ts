@@ -1,15 +1,15 @@
-import { DynamoDBStreamEvent } from 'aws-lambda';
+import { Handler, DynamoDBStreamEvent } from 'aws-lambda';
 import { DocumentClient, UpdateItemOutput } from 'aws-sdk/clients/dynamodb';
 import * as redis from 'redis';
 import { RedisClient } from 'redis';
 import { readFileSync } from 'fs';
 
-export const handler = async function (event: DynamoDBStreamEvent): Promise <any> {
+export const handler: Handler = async function (event: DynamoDBStreamEvent): Promise <any> {
     console.log(JSON.stringify(event));
     let resultOfOps: object = {};
     if (event.Records[0].eventName === "INSERT") {
-        await (new DocumentClient({'region': process.env.DDB_REGION})).update({
-            'TableName': process.env.DDB_TABLE_NAME,
+        await (new DocumentClient({ 'region': (process.env.DDB_REGION).trim() })).update({
+            'TableName': (process.env.DDB_TABLE_NAME).trim(),
             'Key': {
                 'table_name': "tannisUsers"
             },
@@ -19,12 +19,12 @@ export const handler = async function (event: DynamoDBStreamEvent): Promise <any
                 ':sl_no': Number(event.Records[0].dynamodb.NewImage.sl_no['N'])
             },
             'ReturnValues': "UPDATED_NEW"
-        }).promise().then((dbUpdateOpData: UpdateItemOutput): Promise<any> => {
+        }).promise().then((dbUpdateOpData: UpdateItemOutput): Promise <any> => {
             console.log(JSON.stringify(dbUpdateOpData)); resultOfOps['dbUpdateOpData'] = dbUpdateOpData;
             return (new Promise ((resolve: any, reject: any): void => {
                 let redisClientConn: RedisClient = redis.createClient({
-                    'host': process.env.REDIS_HOST,
-                    'port': Number(process.env.REDIS_PORT),
+                    'host': (process.env.REDIS_HOST).trim(),
+                    'port': Number((process.env.REDIS_PORT).trim()),
                     'connect_timeout': 30000
                 });
                 redisClientConn.on("connect", (): void => {
@@ -47,7 +47,7 @@ export const handler = async function (event: DynamoDBStreamEvent): Promise <any
             })); 
         }).then((cacheOpsOpData: any): void => { console.log(cacheOpsOpData); resultOfOps['cacheOpsOpData'] = cacheOpsOpData; })
         .catch((err: Error): void => { console.log(JSON.stringify(err)); resultOfOps['error'] = err; })
-        .finally((): void => { console.log("Promise resolved !!"); });
+        .finally((): void => { console.log("This was a promise !!"); });
     }
     console.log(JSON.stringify(resultOfOps));
     return (resultOfOps);
