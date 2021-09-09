@@ -1,12 +1,12 @@
-import { Handler, DynamoDBStreamEvent } from 'aws-lambda';
+import { DynamoDBStreamHandler, DynamoDBStreamEvent } from 'aws-lambda';
 import { DocumentClient, UpdateItemOutput } from 'aws-sdk/clients/dynamodb';
 import * as redis from 'redis';
 import { RedisClient } from 'redis';
 import { readFileSync } from 'fs';
 
-export const handler: Handler = async function (event: DynamoDBStreamEvent): Promise <any> {
-    console.log(JSON.stringify(event));
-    let resultOfOps: object = {};
+export const handler: DynamoDBStreamHandler = async function (event: DynamoDBStreamEvent): Promise <any> {
+    console.log("Tannis DynamoDB streamed event object !!"); console.log(JSON.stringify(event));
+    let resultOfOps: any = {};
     if (event.Records[0].eventName === "INSERT") {
         await (new DocumentClient({ 'region': (process.env.DDB_REGION).trim() })).update({
             'TableName': (process.env.DDB_TABLE_NAME).trim(),
@@ -20,7 +20,8 @@ export const handler: Handler = async function (event: DynamoDBStreamEvent): Pro
             },
             'ReturnValues': "UPDATED_NEW"
         }).promise().then((dbUpdateOpData: UpdateItemOutput): Promise <any> => {
-            console.log(JSON.stringify(dbUpdateOpData)); resultOfOps['dbUpdateOpData'] = dbUpdateOpData;
+            console.log("Tannis DynamoDB update promise resolved !!"); console.log(JSON.stringify(dbUpdateOpData));
+            resultOfOps['dbUpdateOpData'] = dbUpdateOpData;
             return (new Promise ((resolve: any, reject: any): void => {
                 let redisClientConn: RedisClient = redis.createClient({
                     'host': (process.env.REDIS_HOST).trim(),
@@ -45,10 +46,14 @@ export const handler: Handler = async function (event: DynamoDBStreamEvent): Pro
                 });
                 redisClientConn.on("quit", (): void => { console.log("Connection to redis server closed !!"); });
             })); 
-        }).then((cacheOpsOpData: any): void => { console.log(cacheOpsOpData); resultOfOps['cacheOpsOpData'] = cacheOpsOpData; })
-        .catch((err: Error): void => { console.log(JSON.stringify(err)); resultOfOps['error'] = err; })
-        .finally((): void => { console.log("This was a promise !!"); });
+        }).then((cacheOpsOpData: any): void => {
+            console.log("Tannis Redis cache script operation resolved !!"); console.log(cacheOpsOpData);
+            resultOfOps['cacheOpsOpData'] = cacheOpsOpData;
+        }).catch((err: Error): void => {
+            console.log("Any one of the promises were rejected due to error !!"); console.log(JSON.stringify(err));
+            resultOfOps['error'] = err;
+        }).finally((): void => { console.log("This was a promise !!"); });
     }
-    console.log(JSON.stringify(resultOfOps));
+    console.log("Final lambda execution result !!"); console.log(JSON.stringify(resultOfOps));
     return (resultOfOps);
 };
